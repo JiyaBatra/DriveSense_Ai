@@ -8,7 +8,7 @@
 |---|---------|--------|
 | 1 | Drowsiness Detection | Completed |
 | 2 | Road & Lane Detection | Partial |
-| 3 | Vehicle Health Prediction | Planned |
+| 3 | Vehicle Health Prediction | Partial |
 | 4 | Accident Risk Alert | Planned |
  
 ---
