@@ -7,7 +7,7 @@
 | # | Feature | Status |
 |---|---------|--------|
 | 1 | Drowsiness Detection | Completed |
-| 2 | Road & Lane Detection | Planned |
+| 2 | Road & Lane Detection | Partial |
 | 3 | Vehicle Health Prediction | Planned |
 | 4 | Accident Risk Alert | Planned |
  
