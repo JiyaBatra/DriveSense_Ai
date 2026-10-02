@@ -158,7 +158,7 @@ Predicts whether an engine is **healthy** or has a **fault** from six sensor rea
  
 ### Demo
  
-![Watch the demo video](assets/vehicle_health.mp4)
+ffmpeg -i assets/vehicle_health.mp4 -vf "fps=10,scale=720:-1" assets/vehicle_health.gif
  
 *Demo recording of the vehicle health prediction running on sample sensor inputs.*
  
