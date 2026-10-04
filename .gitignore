@@ -4,4 +4,6 @@ archive (1)
 #lane data set
 archive
 #vehile data set 
-archive (2)
+archive (2)__pycache__/
+*.pyc
+.streamlit/secrets.toml
