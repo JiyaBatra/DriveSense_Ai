@@ -12,6 +12,7 @@ import streamlit as st
 from drowsiness import show_drowsiness
 from vehicle_health import show_vehicle_health
 from lane_detection import show_lane_detection
+from accident_risk import show_accident_risk
 
 
 # =========================================================
@@ -482,10 +483,10 @@ if st.session_state.page == "Dashboard":
     # ---------------- Summary metrics ----------------
 
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Modules Live", "3 / 4")
+    m1.metric("Modules Live", "4 / 4")
     m2.metric("Alert Delay", "2 sec")
     m3.metric("Input", "Live Camera")
-    m4.metric("Next Module", "Accident Risk")
+    m4.metric("Risk Engine", "Fusion")
 
     st.markdown("### Safety & Monitoring")
 
@@ -545,10 +546,17 @@ if st.session_state.page == "Dashboard":
     with col4:
         feature_card(
             "Accident Risk",
-            "Intelligent accident risk monitoring and safety alerts.",
-            "● COMING SOON",
-            live=False,
+            "Combines drowsiness, lane keeping and vehicle health "
+            "into one live accident risk score.",
+            "● LIVE",
         )
+        if st.button(
+            "Open Accident Risk",
+            key="dashboard_accident",
+            use_container_width=True,
+        ):
+            st.session_state.page = "Accident Risk"
+            st.rerun()
 
     # ---------------- Overview table + chart ----------------
 
@@ -566,15 +574,15 @@ if st.session_state.page == "Dashboard":
                 "CNN + Haar face detector",
                 "Random Forest on engine sensors",
                 "Canny edges + Hough lines",
-                "Planned",
+                "Weighted risk fusion",
             ],
             "Input": [
                 "Live camera",
                 "Sensor values",
                 "Camera / image",
-                "-",
+                "Module signals",
             ],
-            "Status": ["Live", "Live", "Live", "Coming soon"],
+            "Status": ["Live", "Live", "Live", "Live"],
         }
     )
     st.dataframe(overview, use_container_width=True, hide_index=True)
@@ -632,19 +640,12 @@ elif st.session_state.page == "Lane Detection":
 
 
 # =========================================================
-# ACCIDENT RISK
+# ACCIDENT RISK PAGE
 # =========================================================
 
 elif st.session_state.page == "Accident Risk":
 
-    page_header(
-        "Accident Risk",
-        "Intelligent accident risk monitoring",
-    )
-
-    st.info(
-        "Accident Risk module is currently under development."
-    )
+    show_accident_risk()
 
 
 # =========================================================
@@ -674,7 +675,7 @@ elif st.session_state.page == "My Profile":
         )
 
     with col2:
-        st.metric("Active Modules", "3")
+        st.metric("Active Modules", "4")
         st.metric("Platform", "DriveSense AI")
 
 

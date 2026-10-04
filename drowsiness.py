@@ -8,6 +8,7 @@ import streamlit as st
 import tensorflow as tf
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfiguration
 
+from signals import publish
 # =========================================================
 # CONFIG
 # =========================================================
@@ -145,7 +146,7 @@ class DrowsinessProcessor(VideoProcessorBase):
             self.label_text = f"Awake ({awake_pct:.0f}%)"
 
         self.box = (x, y, w, h)
-
+        publish("drowsiness", awake_pct=self.awake_pct, alarm=self.alarm)
     def _draw(self, img):
         if self.box is None:
             return

@@ -4,6 +4,8 @@ import numpy as np
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfiguration
 
+from signals import publish
+
 
 # =========================================================
 # CONFIG
@@ -29,9 +31,10 @@ def get_rtc_config():
 # =========================================================
 
 class LaneDetector:
-    def __init__(self, smoothing=0.8, max_missed=10):
-        self.smoothing = smoothing      # higher = steadier lines
-        self.max_missed = max_missed    # frames to keep a lane after it disappears
+    def __init__(self, smoothing=0.8, max_missed=10, publish_signal=False):
+        self.publish_signal = publish_signal   # True only for the live camera
+        self.smoothing = smoothing             # higher = steadier lines
+        self.max_missed = max_missed           # frames to keep a lane after it disappears
         self.left_fit = None
         self.right_fit = None
         self.left_missed = 0
@@ -153,8 +156,25 @@ class LaneDetector:
             else "ONE LANE" if (left_pts or right_pts)
             else "NO LANE"
         )
-        cv2.putText(image, f"LANE DETECTION - {status}", (20, 40),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+
+        # Vehicle offset from lane centre, as a fraction of lane width.
+        # Negative = vehicle is left of centre, positive = right of centre.
+        offset = None
+        if left_pts and right_pts:
+            lane_w = right_pts[0][0] - left_pts[0][0]
+            if lane_w > 0:
+                lane_center = (left_pts[0][0] + right_pts[0][0]) / 2
+                offset = max(-1.0, min(1.0, (w / 2 - lane_center) / lane_w))
+
+        label = f"LANE DETECTION - {status}"
+        if offset is not None:
+            label += f" | offset {offset:+.2f}"
+        cv2.putText(image, label, (20, 40),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+
+        # Send the result to the Accident Risk module
+        if self.publish_signal:
+            publish("lane", status=status, offset=offset)
 
         return image
 
@@ -165,7 +185,7 @@ class LaneDetector:
 
 class LaneProcessor(VideoProcessorBase):
     def __init__(self):
-        self.detector = LaneDetector()
+        self.detector = LaneDetector(publish_signal=True)
         self.mirror = False
 
     def recv(self, frame):
@@ -223,7 +243,8 @@ def show_lane_detection():
                 st.error("Unable to read this image.")
                 return
 
-            result = LaneDetector().detect(image)  # fresh detector, no smoothing carry-over
+            # fresh detector, no smoothing carry-over, and no signal published
+            result = LaneDetector().detect(image)
             st.image(
                 cv2.cvtColor(result, cv2.COLOR_BGR2RGB),
                 caption="Lane Detection Result",
