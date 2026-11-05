@@ -7,3 +7,8 @@ Pillow
 scikit-learn
 joblib
 av
+matplotlib
+seaborn
+pymongo
+dnspython
+certifi
