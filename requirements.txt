@@ -12,3 +12,4 @@ seaborn
 pymongo
 dnspython
 certifi
+streamlit-webrtc
