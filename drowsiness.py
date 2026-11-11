@@ -1,8 +1,17 @@
 import io, time, wave
 from pathlib import Path
 
-import av
+import os
+
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+
 import cv2
+cv2.setNumThreads(1)
+
+import av
+
 import numpy as np
 import streamlit as st
 import tensorflow as tf
@@ -91,7 +100,7 @@ class DrowsinessProcessor(VideoProcessorBase):
         self.awake_min = 60.0     # sleepy if awake % drops below this
         self.alert_time = 2.0     # seconds of sleepiness before alarm
         self.mirror = True
-        self.analyze_every = 2    # run detection + CNN on every Nth frame
+        self.analyze_every = 5    # run detection + CNN on every Nth frame
 
         # State (read by the UI)
         self.alarm = False
@@ -238,8 +247,8 @@ def show_drowsiness():
         media_stream_constraints={
             "video": {
                 "facingMode": {"ideal": facing},
-                "width": {"ideal": 640},
-                "height": {"ideal": 480},
+                "width": {"ideal": 320},
+                "height": {"ideal": 240},
             },
             "audio": False,
         },
@@ -251,23 +260,26 @@ def show_drowsiness():
     audio_bytes, audio_mime = load_alarm_audio()
 
     # ---------------- Live status + alarm ----------------
-    while ctx.state.playing:
-        p = ctx.video_processor
-        if p:
-            p.awake_min = awake_min
-            p.alert_time = alert_time
-            p.mirror = mirror
-            p.analyze_every = analyze_every
+  @st.fragment(run_every=0.5)
+def live_status():
+    p = ctx.video_processor
 
-            if p.alarm:
-                status.error("🚨 DROWSINESS ALERT — Driver appears sleepy!")
-                alarm_slot.audio(
-                    audio_bytes, format=audio_mime, autoplay=True, loop=True
-                )
-            else:
-                alarm_slot.empty()
-                if p.awake_pct is None:
-                    status.warning("No face detected.")
-                else:
-                    status.success(f"Driver is awake ({p.awake_pct:.0f}%)")
-        time.sleep(0.3)
+    if not p:
+        return
+
+    p.awake_min = awake_min
+    p.alert_time = alert_time
+    p.mirror = mirror
+    p.analyze_every = analyze_every
+
+    if p.alarm:
+        st.error("🚨 DROWSINESS ALERT — Driver appears sleepy!")
+        st.audio(audio_bytes, format=audio_mime, loop=True)
+
+    elif p.awake_pct is None:
+        st.warning("No face detected.")
+
+    else:
+        st.success(f"Driver is awake ({p.awake_pct:.0f}%)")
+
+live_status()
